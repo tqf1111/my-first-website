@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>孙静茹可以和我和好吗？</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #fff5f7;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+        
+        .container {
+            text-align: center;
+            z-index: 1;
+        }
+        
+        #mainImage {
+            width: 200px;
+            height: 200px;
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+        
+        #question {
+            color: #ff6b88;
+            margin-bottom: 30px;
+            font-size: 24px;
+            transition: transform 0.3s;
+        }
+        
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        button {
+            padding: 10px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        #yes {
+            background-color: #ff6b88;
+            color: white;
+        }
+        
+        #no {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+        
+        .yes-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(255, 107, 136, 0.1);
+            z-index: 10;
+        }
+        
+        .yes-text {
+            color: #ff6b88;
+            font-size: 36px;
+            margin-bottom: 30px;
+            animation: bounce 1s infinite alternate;
+        }
+        
+        .yes-image {
+            width: 300px;
+            height: 300px;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-20px); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <audio id="yesSound" src="https://sf5-hl-cdn-tos.douyinstatic.com/obj/ies-music/7108171180007377695.mp3"></audio>
+    <div class="container">
+        <img id="mainImage" src="https://dy.dw0.cn/uploads/20250220/7ca0cc8ee11455b89d07291ddbd8c8d4.png" alt="爱心">
+        <h1 id="question">孙静茹可以跟我和好吗？</h1>
+        <div class="buttons">
+            <button id="yes">可以</button>
+            <button id="no">不要</button>
+        </div>
+    </div>
+    <canvas id="c"></canvas>
+
+    <script>
+        // 爱心动画
+        const canvas = document.getElementById("c");
+        const ctx = canvas.getContext("2d");
+        let w, h;
+        const pi = Math.PI;
+        
+        const all_attribute = {
+            num: 10,
+            start_probability: 0.1,
+            size_min: 1,
+            size_max: 2,
+            size_add_min: 0.3,
+            size_add_max: 0.5,
+            opacity_min: 0.5,
+            opacity_max: 0.5,
+            opacity_prev_min: .003,
+            opacity_prev_max: .005,
+            light_min: 0,
+            light_max: 90
+        };
+        
+        let style_color = Math.random() * 360;
+        let all_element = [];
+        
+        function start() {
+            window.requestAnimationFrame(start);
+            style_color += 0.1;
+            ctx.fillStyle = 'hsl(' + style_color + ',100%,97%)';
+            ctx.fillRect(0, 0, w, h);
+            
+            if (all_element.length < all_attribute.num && Math.random() < all_attribute.start_probability) {
+                all_element.push(new ready_run);
+            }
+            
+            all_element.forEach(function(line) {
+                line.to_step();
+            });
+        }
+        
+        function ready_run() {
+            this.to_reset();
+        }
+        
+        function arc_heart(x, y, z, m) {
+            y -= m * 10;
+            ctx.moveTo(x, y);
+            z *= 0.05;
+            ctx.bezierCurveTo(x, y - 3 * z, x - 5 * z, y - 15 * z, x - 25 * z, y - 15 * z);
+            ctx.bezierCurveTo(x - 55 * z, y - 15 * z, x - 55 * z, y + 22.5 * z, x - 55 * z, y + 22.5 * z);
+            ctx.bezierCurveTo(x - 55 * z, y + 40 * z, x - 35 * z, y + 62 * z, x, y + 80 * z);
+            ctx.bezierCurveTo(x + 35 * z, y + 62 * z, x + 55 * z, y + 40 * z, x + 55 * z, y + 22.5 * z);
+            ctx.bezierCurveTo(x + 55 * z, y + 22.5 * z, x + 55 * z, y - 15 * z, x + 25 * z, y - 15 * z);
+            ctx.bezierCurveTo(x + 10 * z, y - 15 * z, x, y - 3 * z, x, y);
+        }
+        
+        ready_run.prototype = {
+            to_reset: function() {
+                this.x = Math.random() * w;
+                this.y = Math.random() * h;
+                this.size = Math.random() * (all_attribute.size_max - all_attribute.size_min) + all_attribute.size_min;
+                this.size_change = Math.random() * (all_attribute.size_add_max - all_attribute.size_add_min) + all_attribute.size_add_min;
+                this.opacity = Math.random() * (all_attribute.opacity_max - all_attribute.opacity_min) + all_attribute.opacity_min;
+                this.opacity_change = Math.random() * (all_attribute.opacity_prev_max - all_attribute.opacity_prev_min) + all_attribute.opacity_prev_min;
+                this.light = Math.random() * (all_attribute.light_max - all_attribute.light_min) + all_attribute.light_min;
+                this.color = 'hsl(330, 100%, 75%)';
+            },
+            to_step: function() {
+                this.opacity -= this.opacity_change;
+                this.size += this.size_change;
+                
+                if (this.opacity <= 0) {
+                    this.to_reset();
+                    return false;
+                }
+                
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.opacity;
+                ctx.beginPath();
+                arc_heart(this.x, this.y, this.size, this.size);
+                ctx.closePath();
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        };
+        
+        function window_resize() {
+            w = window.innerWidth;
+            h = window.innerHeight;
+            canvas.width = w;
+            canvas.height = h;
+        }
+        
+        window.addEventListener('resize', window_resize);
+        
+        // 初始化
+        window_resize();
+        
+        // 按钮交互
+        const yesSound = document.getElementById('yesSound');
+        const yesButton = document.getElementById('yes');
+        const noButton = document.getElementById('no');
+        const questionText = document.getElementById('question');
+        const mainImage = document.getElementById('mainImage');
+        
+        let clickCount = 0;
+        const noTexts = [
+            '对不起，我知道错了',
+            '零花钱都给你',
+            '欲擒故纵，我知道',
+            '能不能给个台阶',
+            '原谅我嘛~'
+        ];
+        
+        noButton.addEventListener('click', function() {
+            clickCount++;
+            const yesScale = 1 + clickCount * 1.2;
+            const noTranslate = clickCount * 50;
+            const elementScale = clickCount * 25;
+            
+            yesButton.style.transform = `scale(${yesScale})`;
+            noButton.style.transform = `translateX(${noTranslate}px)`;
+            mainImage.style.transform = `scale(${elementScale}%)`;
+            questionText.style.transform = `scale(${elementScale}%)`;
+            
+            if (clickCount <= 5) {
+                noButton.textContent = noTexts[clickCount - 1];
+            }
+            
+            // 根据点击次数更换图片
+            const imageUrls = [
+                'https://dy.dw0.cn/uploads/20250220/2ba43acdcf06e5c74e0a43751d65b48d.png',
+                'https://dy.dw0.cn/uploads/20250220/125b9ff1476df8ab401db0c45c277bb8.png',
+                'https://dy.dw0.cn/uploads/20250220/37603aafd1b95b4b702f57d68c1ae067.png',
+                'https://dy.dw0.cn/uploads/20250220/2fb0f65d1b388d88c448f653708844f3.png',
+                'https://dy.dw0.cn/uploads/20250220/7c39db38140374806876021b70640410.png'
+            ];
+            
+            if (clickCount >= 1 && clickCount <= 5) {
+                mainImage.src = imageUrls[clickCount - 1];
+            }
+        });
+        
+        yesButton.addEventListener('click', function() {
+            setTimeout(function() {
+                yesSound.play();
+            }, 100);
+            
+            window_resize();
+            start();
+            
+            // 创建成功页面
+            const yesScreen = document.createElement('div');
+            yesScreen.className = 'yes-screen';
+            yesScreen.innerHTML = `
+                <h1 class="yes-text">太好啦！！耶！！ ( >᎑<)♡︎Ꭹ</h1>
+                <img src="https://dy.dw0.cn/uploads/20250220/bee0e89bd8865c65ca60522441e9445f.gif" alt="拥抱" class="yes-image">
+            `;
+            
+            document.body.innerHTML = '';
+            document.body.appendChild(yesScreen);
+            document.body.appendChild(canvas);
+            document.body.style.overflow = 'hidden';
+        });
+    </script>
+</body>
+</html>
